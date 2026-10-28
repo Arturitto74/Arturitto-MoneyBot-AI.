@@ -2,11 +2,20 @@ export async function onRequestGet({ env }) {
   const login = env.WEBEPARTNERS_API_LOGIN;
   const key = env.WEBEPARTNERS_API_KEY;
 
+  const json = (data, status = 200) =>
+    Response.json(data, {
+      status,
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      }
+    });
+
   if (!login || !key) {
-    return Response.json(
-      { error: "Brak konfiguracji API WebePartners" },
-      { status: 503 }
-    );
+    return json({
+      status: "error",
+      message: "Brak konfiguracji API"
+    }, 503);
   }
 
   const headers = {
@@ -14,14 +23,14 @@ export async function onRequestGet({ env }) {
     Accept: "application/json"
   };
 
-  async function getData(endpoint) {
+  async function fetchApi(method) {
     const response = await fetch(
-      `https://api2.webepartners.pl/Wydawca/${endpoint}`,
-      { headers }
+      `https://api2.webepartners.pl/Wydawca/${method}`,
+      { headers, cache: "no-store" }
     );
 
     if (!response.ok) {
-      throw new Error(`${endpoint}: HTTP ${response.status}`);
+      throw new Error(`${method}: HTTP ${response.status}`);
     }
 
     return response.json();
@@ -29,60 +38,77 @@ export async function onRequestGet({ env }) {
 
   try {
     const [programs, feeds] = await Promise.all([
-      getData("GetPrograms"),
-      getData("GetFeeds")
+      fetchApi("GetPrograms"),
+      fetchApi("GetFeeds")
     ]);
 
     if (!Array.isArray(programs) || !Array.isArray(feeds)) {
-      return Response.json({
-        status: "unexpected_format",
-        programsIsArray: Array.isArray(programs),
-        feedsIsArray: Array.isArray(feeds),
-        programFields: Array.isArray(programs)
-          ? Object.keys(programs[0] || {})
-          : Object.keys(programs || {})
-      });
+      return json({
+        status: "error",
+        message: "Nieoczekiwany format API"
+      }, 502);
     }
 
-    const programMap = new Map();
+    const withXml = programs.filter(p => p.isXml === true);
+    const withFeedUrl = programs.filter(
+      p => typeof p.feedUrl === "string" &&
+           p.feedUrl.trim().length > 0
+    );
 
-    for (const program of programs) {
-      const id = program.programId ?? program.id;
+    const withDeeplink = programs.filter(
+      p => p.isDeeplink === true
+    );
 
-      if (id !== undefined && id !== null) {
-        programMap.set(String(id), program);
-      }
-    }
+    const withRelation = programs.filter(
+      p => p.relationId !== null &&
+           p.relationId !== undefined &&
+           p.relationId !== 0 &&
+           p.relationId !== "0" &&
+           p.relationId !== ""
+    );
 
-    const availableFeeds = feeds.map(feed => {
-      const program = programMap.get(String(feed.programId));
+    const feedIds = new Set(
+      feeds.map(f => String(f.programId))
+    );
 
-      return {
-        programId: feed.programId,
-        programName: feed.programName,
-        feedName: feed.feedName,
-        updateDate: feed.updateDate,
-        listedInPrograms: Boolean(program)
-      };
-    });
+    const candidates = programs
+      .filter(p =>
+        p.isXml === true ||
+        (typeof p.feedUrl === "string" && p.feedUrl.trim())
+      )
+      .slice(0, 30)
+      .map(p => ({
+        programId: p.programId,
+        programName: p.programName,
+        isXml: p.isXml === true,
+        hasFeedUrl: Boolean(
+          typeof p.feedUrl === "string" && p.feedUrl.trim()
+        ),
+        isDeeplink: p.isDeeplink === true,
+        hasRelationId: p.relationId != null &&
+                       p.relationId !== 0 &&
+                       p.relationId !== "0" &&
+                       p.relationId !== "",
+        hasExistingFeed: feedIds.has(String(p.programId))
+      }));
 
-    return Response.json({
+    return json({
       status: "ok",
-      programsCount: programs.length,
-      feedsCount: feeds.length,
-      feeds: availableFeeds,
-      programFields: Object.keys(programs[0] || {}),
-      message: "Dane diagnostyczne. Statusy akceptacji wymagają weryfikacji."
-    }, {
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      totalPrograms: programs.length,
+      xmlSupported: withXml.length,
+      programsWithFeedUrl: withFeedUrl.length,
+      deeplinkSupported: withDeeplink.length,
+      programsWithRelationId: withRelation.length,
+      existingFeeds: feeds.length,
+      candidatesShown: candidates.length,
+      candidates,
+      note: "Relacja nie jest jeszcze potwierdzeniem akceptacji. Prywatne adresy XML nie sa ujawniane."
     });
 
-  } catch (error) {
-    return Response.json({
+  } catch {
+    return json({
       status: "error",
-      message: error.message
-    }, { status: 502 });
+      message: "Nie udalo sie pobrac danych API"
+    }, 502);
   }
 }
