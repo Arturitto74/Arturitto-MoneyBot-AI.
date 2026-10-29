@@ -75,14 +75,24 @@ export async function onRequestGet({ request, params }) {
     })();
 
     const structuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: item.name,
-      ...(item.description
-        ? { description: item.description }
-        : {}),
-      ...(image ? { image: [image] } : {})
-    };
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: item.name,
+  ...(item.description
+    ? { description: item.description }
+    : {}),
+  ...(image ? { image: [image] } : {}),
+  ...(priceValid
+    ? {
+        offers: {
+          '@type': 'Offer',
+          price: price,
+          priceCurrency: 'PLN',
+          url: canonical
+        }
+      }
+    : {})
+};
 
     const json = JSON.stringify(structuredData)
       .replace(/</g, '\\u003c');
