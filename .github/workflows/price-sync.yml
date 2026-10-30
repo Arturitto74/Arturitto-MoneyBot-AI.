@@ -1,0 +1,59 @@
+name: MoneyBot - Automatic Price Sync
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Synchronizacja cen MoneyBot
+        env:
+          SYNC_TOKEN: ${{ secrets.PRICE_SYNC_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import urllib.request
+
+          token = os.environ.get("SYNC_TOKEN")
+
+          if not token:
+              raise RuntimeError("Brak sekretu PRICE_SYNC_TOKEN")
+
+          url = (
+              "https://arturitto-moneybot-ai.pages.dev"
+              "/api/price-sync"
+          )
+
+          request = urllib.request.Request(
+              url,
+              data=b"{}",
+              headers={
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json"
+              },
+              method="POST"
+          )
+
+          with urllib.request.urlopen(request, timeout=90) as response:
+              result = json.load(response)
+
+          if result.get("status") != "ok":
+              raise RuntimeError(
+                  "Synchronizacja nie powiodla sie"
+              )
+
+          print("Synchronizacja zakonczona")
+          print("Dodano:", result.get("added", 0))
+          print("Zmiany:", result.get("changed", 0))
+          print("Bez zmian:", result.get("unchanged", 0))
+          print("Pominieto:", result.get("skipped", 0))
+          PY
