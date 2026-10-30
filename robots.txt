@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arturitto-moneybot-ai.pages.dev/sitemap-products
+Sitemap: https://arturitto-moneybot-ai.pages.dev/sitemap.xml
