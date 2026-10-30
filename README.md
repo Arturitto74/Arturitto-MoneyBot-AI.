@@ -20,3 +20,4 @@ Plik `data/revenue.json` to **ręcznie aktualizowana ewidencja pomocnicza**, nie
 ## Podatki
 Ustal z doradcą podatkowym rezydencję i rozliczenia PL/CZ oraz kwalifikację przychodów afiliacyjnych. Bot nie zastępuje rozliczeń podatkowych.
 Telegram MoneyBot - aktualizacja konfiguracji
+MoneyBot Telegram - aktywacja bazy KV
