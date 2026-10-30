@@ -22,38 +22,76 @@ jobs:
           import os
           import json
           import urllib.request
+          import urllib.error
+          import sys
 
-          token = os.environ.get("SYNC_TOKEN")
+          URL = "https://arturitto-moneybot-ai.pages.dev/api/price-sync"
+
+          token = os.environ.get("SYNC_TOKEN", "").strip()
 
           if not token:
-              raise RuntimeError("Brak sekretu PRICE_SYNC_TOKEN")
+              print("BLAD: Brak PRICE_SYNC_TOKEN w GitHub Secrets")
+              sys.exit(1)
 
-          url = (
-              "https://arturitto-moneybot-ai.pages.dev"
-              "/api/price-sync"
-          )
+          print("MoneyBot AI - synchronizacja cen")
+          print("Sprawdzanie polaczenia z Cloudflare...")
 
           request = urllib.request.Request(
-              url,
+              URL,
               data=b"{}",
               headers={
                   "Authorization": "Bearer " + token,
-                  "Content-Type": "application/json"
+                  "Content-Type": "application/json",
+                  "Accept": "application/json",
+                  "User-Agent": "MoneyBot-PriceSync/1.0"
               },
               method="POST"
           )
 
-          with urllib.request.urlopen(request, timeout=90) as response:
-              result = json.load(response)
+          try:
+              with urllib.request.urlopen(request, timeout=90) as response:
+                  status = response.status
+                  body = response.read().decode("utf-8", errors="replace")
+                  cf_ray = response.headers.get("CF-Ray", "brak")
 
-          if result.get("status") != "ok":
-              raise RuntimeError(
-                  "Synchronizacja nie powiodla sie"
-              )
+              print("HTTP status:", status)
+              print("Cloudflare Ray:", cf_ray)
 
-          print("Synchronizacja zakonczona")
-          print("Dodano:", result.get("added", 0))
-          print("Zmiany:", result.get("changed", 0))
-          print("Bez zmian:", result.get("unchanged", 0))
-          print("Pominieto:", result.get("skipped", 0))
+              result = json.loads(body)
+
+              if result.get("status") != "ok":
+                  print("Odpowiedz API:", body[:1200])
+                  sys.exit(1)
+
+              print("SYNCHRONIZACJA ZAKONCZONA")
+              print("Produkty:", result.get("totalProducts"))
+              print("Dodane:", result.get("added"))
+              print("Zmienione:", result.get("changed"))
+              print("Bez zmian:", result.get("unchanged"))
+              print("Pominiete:", result.get("skipped"))
+
+          except urllib.error.HTTPError as error:
+              body = error.read().decode("utf-8", errors="replace")
+
+              print("BLAD HTTP:", error.code)
+              print("Server:", error.headers.get("Server", "brak"))
+              print("CF-Ray:", error.headers.get("CF-Ray", "brak"))
+              print("Content-Type:", error.headers.get("Content-Type", "brak"))
+
+              if error.code == 401:
+                  print("DIAGNOZA: API odrzucilo token administratora.")
+              elif error.code == 403:
+                  print("DIAGNOZA: Serwer zabronil wykonania zadania.")
+                  print("Sprawdzamy odpowiedz, aby ustalic przyczyne.")
+              elif error.code == 404:
+                  print("DIAGNOZA: Nie znaleziono funkcji API.")
+
+              print("Odpowiedz serwera:")
+              print(body[:1200])
+              sys.exit(1)
+
+          except Exception as error:
+              print("BLAD:", type(error).__name__)
+              print(str(error))
+              sys.exit(1)
           PY
