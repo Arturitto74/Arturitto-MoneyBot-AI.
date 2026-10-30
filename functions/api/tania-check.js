@@ -4,20 +4,23 @@ export async function onRequestGet({ env }) {
   const json = (data, status = 200) =>
     Response.json(data, {
       status,
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      headers: { "Cache-Control": "no-store" }
     });
 
   if (!url) {
     return json({
       status: "error",
-      message: "Brak TANIAKSIAZKA_XML_URL w Cloudflare"
+      stage: "configuration",
+      message: "Brak zmiennej TANIAKSIAZKA_XML_URL"
     }, 503);
   }
 
+  let stage = "start";
+
   try {
-    const address = new URL(url);
+    stage = "address";
+
+    const address = new URL(url.trim());
 
     if (
       address.protocol !== "https:" ||
@@ -25,93 +28,88 @@ export async function onRequestGet({ env }) {
     ) {
       return json({
         status: "error",
-        message: "Nieprawidłowe źródło katalogu XML"
-      }, 400);
+        stage,
+        message: "Nieprawidłowy adres katalogu XML"
+      });
     }
 
-    const response = await fetch(url, {
+    stage = "fetch";
+
+    const response = await fetch(address.toString(), {
       headers: {
         Accept: "application/xml, text/xml, */*"
       },
-      signal: AbortSignal.timeout(20000)
+      signal: AbortSignal.timeout(25000)
     });
 
     if (!response.ok) {
       return json({
         status: "error",
-        sourceStatus: response.status,
-        message: "Nie udało się pobrać XML"
-      }, 502);
+        stage,
+        httpStatus: response.status,
+        message: "Serwer katalogu odrzucił żądanie"
+      });
     }
+
+    stage = "read";
 
     if (!response.body) {
       return json({
         status: "error",
-        message: "Serwer nie zwrócił danych"
-      }, 502);
+        stage,
+        message: "Brak danych XML w odpowiedzi"
+      });
     }
 
-    // Czytamy tylko początek katalogu.
-    // Nie pobieramy 287 tysięcy produktów do pamięci.
     const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
+    const decoder = new TextDecoder();
 
     let sample = "";
     let bytesRead = 0;
-    const limit = 65536;
 
     try {
-      while (bytesRead < limit) {
-        const { value, done } = await reader.read();
+      while (bytesRead < 65536) {
+        const { done, value } = await reader.read();
 
         if (done) break;
 
         bytesRead += value.byteLength;
-        sample += decoder.decode(value, {
-          stream: true
-        });
-
-        if (bytesRead >= limit) break;
+        sample += decoder.decode(value, { stream: true });
       }
     } finally {
       await reader.cancel().catch(() => {});
     }
 
-    // Pokazujemy tylko nazwy znaczników XML.
-    // Nie pokazujemy adresów ani prywatnych danych katalogu.
-    const counts = {};
+    stage = "analysis";
+
+    const tags = {};
 
     for (const match of sample.matchAll(
       /<([A-Za-z_][\w:.-]*)(?=[\s/>])/g
     )) {
-      const tag = match[1];
-
-      counts[tag] = (counts[tag] || 0) + 1;
+      tags[match[1]] = (tags[match[1]] || 0) + 1;
     }
-
-    const tags = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 30)
-      .map(([name, occurrences]) => ({
-        name,
-        occurrences
-      }));
 
     return json({
       status: "ok",
       source: "TaniaKsiazka.pl",
-      xmlHttpStatus: response.status,
-      bytesInspected: bytesRead,
-      tags,
-      message: "Wstępna analiza struktury XML zakończona"
+      httpStatus: response.status,
+      bytesRead,
+      tags: Object.entries(tags)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 25)
+        .map(([name, count]) => ({ name, count }))
     });
 
   } catch (error) {
-    console.error("Tania XML check:", error.name);
-
     return json({
       status: "error",
-      message: "Nie udało się sprawdzić katalogu"
-    }, 502);
+      stage,
+      errorType: error.name || "UnknownError",
+      message:
+        error.name === "TimeoutError"
+          ? "Przekroczono czas pobierania katalogu"
+          : "Błąd połączenia lub odczytu katalogu"
+    });
   }
 }
