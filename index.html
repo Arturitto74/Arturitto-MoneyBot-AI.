@@ -373,8 +373,7 @@ fetch('/api/products')
   const comparison = document.createElement('section');
   comparison.className = 'mb-compare';
   comparison.hidden = true;
-  grid.after(comparison);
-
+tools.after(comparison);
   const originalRender = render;
 
   function getPrice(product) {
