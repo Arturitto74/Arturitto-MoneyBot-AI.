@@ -817,5 +817,239 @@ fetch('/api/products')
 })();
 </script>
 
-</body>
+<!-- MONEYBOT AI V1.3 - KSIĄŻKI -->
+<style>
+#mb-books {
+  background: #18243a;
+  border: 1px solid #33435e;
+  border-radius: 18px;
+  padding: 22px;
+  margin: 20px 0;
+}
+
+#mb-books[hidden] {
+  display: none;
+}
+
+#mb-books h2 {
+  margin-top: 0;
+}
+
+.mb-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.mb-book {
+  background: #101b2e;
+  border: 1px solid #31435e;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.mb-book img {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  background: white;
+}
+
+.mb-book-body {
+  padding: 16px;
+}
+
+.mb-book h3 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.mb-book-price {
+  color: #8ef0c4;
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.mb-book-button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  padding: 12px;
+  margin-top: 12px;
+  background: #46b58c;
+  color: #071a16;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+#mb-book-search {
+  width: 100%;
+  max-width: 500px;
+}
+</style>
+
+<script>
+(async function initBooks() {
+  const section = document.createElement("section");
+  section.id = "mb-books";
+  section.hidden = true;
+
+  const heading = document.createElement("h2");
+  heading.textContent = "📚 Książki i literatura";
+
+  const subtitle = document.createElement("p");
+  subtitle.textContent =
+    "Oferty TaniaKsiazka.pl dostępne przez WebePartners";
+
+  const searchInput = document.createElement("input");
+  searchInput.id = "mb-book-search";
+  searchInput.placeholder = "Szukaj w załadowanych książkach...";
+  searchInput.setAttribute(
+    "aria-label",
+    "Wyszukaj książkę"
+  );
+
+  const counter = document.createElement("p");
+
+  const bookGrid = document.createElement("div");
+  bookGrid.className = "mb-books-grid";
+
+  section.append(
+    heading,
+    subtitle,
+    searchInput,
+    counter,
+    bookGrid
+  );
+
+  const productsSection =
+    document.querySelector("#products");
+
+  if (!productsSection) return;
+
+  productsSection.before(section);
+
+  try {
+    const response = await fetch("/api/books");
+
+    if (!response.ok) {
+      throw new Error("Błąd pobierania książek");
+    }
+
+    const data = await response.json();
+
+    if (
+      data.status !== "ok" ||
+      !Array.isArray(data.products)
+    ) {
+      return;
+    }
+
+    const books = data.products;
+
+    if (!books.length) return;
+
+    const formatPrice = value =>
+      new Intl.NumberFormat("pl-PL", {
+        style: "currency",
+        currency: "PLN"
+      }).format(value);
+
+    function isAffiliateLink(value) {
+      try {
+        const url = new URL(value);
+
+        return url.protocol === "https:" &&
+          (
+            url.hostname === "webep1.com" ||
+            url.hostname.endsWith(".webep1.com")
+          );
+      } catch {
+        return false;
+      }
+    }
+
+    function renderBooks() {
+      const query = searchInput.value
+        .trim()
+        .toLocaleLowerCase("pl");
+
+      const visible = books.filter(book =>
+        (
+          String(book.name || "") + " " +
+          String(book.category || "")
+        ).toLocaleLowerCase("pl").includes(query)
+      );
+
+      counter.textContent =
+        `Książki: ${books.length} · Wyświetlono: ${visible.length}`;
+
+      bookGrid.replaceChildren();
+
+      for (const book of visible) {
+        const card = document.createElement("article");
+        card.className = "mb-book";
+
+        if (book.image) {
+          const image = document.createElement("img");
+          image.src = book.image;
+          image.alt = book.name || "Okładka książki";
+          image.loading = "lazy";
+          image.referrerPolicy = "no-referrer";
+          card.append(image);
+        }
+
+        const body = document.createElement("div");
+        body.className = "mb-book-body";
+
+        const name = document.createElement("h3");
+        name.textContent = book.name || "Książka";
+        body.append(name);
+
+        if (book.category) {
+          const category = document.createElement("small");
+          category.textContent = book.category;
+          body.append(category);
+        }
+
+        const price = Number(book.price);
+
+        if (Number.isFinite(price) && price > 0) {
+          const priceElement = document.createElement("p");
+          priceElement.className = "mb-book-price";
+          priceElement.textContent = formatPrice(price);
+          body.append(priceElement);
+        }
+
+        if (isAffiliateLink(book.url)) {
+          const button = document.createElement("a");
+
+          button.href = book.url;
+          button.target = "_blank";
+          button.rel = "noopener noreferrer sponsored";
+          button.className = "mb-book-button";
+          button.textContent = "Sprawdź w sklepie ↗";
+
+          body.append(button);
+        }
+
+        card.append(body);
+        bookGrid.append(card);
+      }
+    }
+
+    searchInput.addEventListener("input", renderBooks);
+
+    renderBooks();
+    section.hidden = false;
+
+  } catch (error) {
+    console.warn(
+      "MoneyBot: nie udało się załadować książek."
+    );
+  }
+})();
+</script>
+<!-- KONIEC SEKCJI KSIĄŻEK --></body>
 </html>
