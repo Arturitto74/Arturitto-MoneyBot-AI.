@@ -275,6 +275,318 @@ fetch('/api/products')
     status.textContent =
       'Nie udało się pobrać katalogu: ' + error.message;
   });
+</script><style>
+.mb-tools {
+  background:#18243a;
+  border:1px solid #33435e;
+  border-radius:18px;
+  padding:22px;
+  margin:18px 0;
+}
+.mb-filters {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:12px;
+}
+.mb-filters input,
+.mb-filters select {
+  width:100%;
+  max-width:none;
+  padding:12px;
+  background:#0b1120;
+  color:white;
+  border:1px solid #536782;
+  border-radius:10px;
+}
+.mb-compare {
+  background:#18243a;
+  border:1px solid #46b58c;
+  border-radius:18px;
+  padding:22px;
+  margin:18px 0;
+}
+.mb-compare-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:14px;
+}
+.mb-compare-item {
+  background:#101b2e;
+  border-radius:12px;
+  padding:15px;
+}
+.mb-compare-item img {
+  width:100%;
+  height:160px;
+  object-fit:contain;
+  background:white;
+  border-radius:10px;
+}
+.mb-select {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:14px;
+  color:#8ef0c4;
+  font-size:14px;
+  cursor:pointer;
+}
+.mb-select input {
+  width:auto;
+}
+</style>
+
+<script>
+(() => {
+  const selected = new Set();
+
+  const tools = document.createElement('section');
+  tools.className = 'mb-tools';
+
+  tools.innerHTML = `
+    <h2>⚖️ Porównywarka produktów</h2>
+    <p>Znajdź najlepszy fotel i porównaj maksymalnie 3 modele.</p>
+
+    <div class="mb-filters">
+      <input id="mb-min" type="number"
+             min="0" placeholder="Cena od (zł)">
+
+      <input id="mb-max" type="number"
+             min="0" placeholder="Cena do (zł)">
+
+      <select id="mb-size">
+        <option value="">Wszystkie rozmiary</option>
+        <option value="normal">Normal Size</option>
+        <option value="king">King Size</option>
+      </select>
+
+      <select id="mb-sort">
+        <option value="">Sortowanie domyślne</option>
+        <option value="asc">Najtańsze</option>
+        <option value="desc">Najdroższe</option>
+      </select>
+    </div>
+  `;
+
+  grid.before(tools);
+
+  const comparison = document.createElement('section');
+  comparison.className = 'mb-compare';
+  comparison.hidden = true;
+  grid.after(comparison);
+
+  const originalRender = render;
+
+  function getPrice(product) {
+    const value = String(product.price ?? '')
+      .replace(',', '.')
+      .replace(/\s/g, '');
+
+    const price = Number(value);
+
+    return Number.isFinite(price) && price > 0
+      ? price
+      : null;
+  }
+
+  function updateComparison() {
+    const chosen = products.filter(p =>
+      selected.has(String(p.id))
+    );
+
+    comparison.replaceChildren();
+    comparison.hidden = chosen.length === 0;
+
+    if (!chosen.length) return;
+
+    const heading = document.createElement('h2');
+    heading.textContent =
+      `⚖️ Porównanie (${chosen.length}/3)`;
+
+    const container = document.createElement('div');
+    container.className = 'mb-compare-grid';
+
+    chosen.forEach(p => {
+      const box = document.createElement('div');
+      box.className = 'mb-compare-item';
+
+      if (p.image) {
+        const img = document.createElement('img');
+        img.src = p.image;
+        img.alt = p.name || 'Produkt';
+        img.loading = 'lazy';
+        box.append(img);
+      }
+
+      const name = document.createElement('h3');
+      name.textContent = p.name || 'Produkt';
+      box.append(name);
+
+      const price = document.createElement('p');
+      const amount = getPrice(p);
+
+      price.textContent = amount === null
+        ? 'Cena niedostępna'
+        : amount.toFixed(2) + ' zł';
+
+      box.append(price);
+
+      const size = document.createElement('p');
+      const lower = String(p.name || '').toLowerCase();
+
+      size.textContent = lower.includes('king size')
+        ? 'Rozmiar: King Size'
+        : lower.includes('normal size')
+          ? 'Rozmiar: Normal Size'
+          : 'Rozmiar: niepodany';
+
+      box.append(size);
+
+      const link = document.createElement('a');
+      link.href = '/produkt/' +
+        encodeURIComponent(String(p.id));
+
+      link.textContent = 'Szczegóły produktu →';
+
+      box.append(link);
+      container.append(box);
+    });
+
+    comparison.append(heading, container);
+  }
+
+  render = function() {
+    originalRender();
+
+    const query = search.value
+      .trim()
+      .toLocaleLowerCase('pl');
+
+    const baseList = products.filter(p =>
+      (String(p.name || '') + ' ' +
+       String(p.description || ''))
+        .toLocaleLowerCase('pl')
+        .includes(query)
+    );
+
+    const cards = [...grid.querySelectorAll('.product')];
+
+    const cardMap = new Map();
+
+    baseList.forEach((p, index) => {
+      if (cards[index]) {
+        cardMap.set(String(p.id), cards[index]);
+      }
+    });
+
+    const minRaw = document.querySelector('#mb-min').value;
+    const maxRaw = document.querySelector('#mb-max').value;
+    const size = document.querySelector('#mb-size').value;
+    const sort = document.querySelector('#mb-sort').value;
+
+    const min = minRaw === '' ? null : Number(minRaw);
+    const max = maxRaw === '' ? null : Number(maxRaw);
+
+    const visible = baseList.filter(p => {
+      const price = getPrice(p);
+      const name = String(p.name || '').toLowerCase();
+
+      if (min !== null && (price === null || price < min))
+        return false;
+
+      if (max !== null && (price === null || price > max))
+        return false;
+
+      if (size === 'normal' &&
+          !name.includes('normal size'))
+        return false;
+
+      if (size === 'king' &&
+          !name.includes('king size'))
+        return false;
+
+      return true;
+    });
+
+    if (sort === 'asc') {
+      visible.sort((a, b) =>
+        (getPrice(a) ?? Infinity) -
+        (getPrice(b) ?? Infinity)
+      );
+    }
+
+    if (sort === 'desc') {
+      visible.sort((a, b) =>
+        (getPrice(b) ?? -Infinity) -
+        (getPrice(a) ?? -Infinity)
+      );
+    }
+
+    grid.replaceChildren();
+
+    visible.forEach(p => {
+      const card = cardMap.get(String(p.id));
+      if (!card) return;
+
+      const label = document.createElement('label');
+      label.className = 'mb-select';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.id = String(p.id);
+      checkbox.checked = selected.has(String(p.id));
+
+      label.append(
+        checkbox,
+        document.createTextNode('Dodaj do porównania')
+      );
+
+      card.querySelector('.body').append(label);
+      grid.append(card);
+    });
+
+    if (!visible.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'Brak produktów spełniających kryteria.';
+      grid.append(empty);
+    }
+
+    status.textContent =
+      `Produktów: ${products.length} · Wyświetlono: ${visible.length}`;
+
+    updateComparison();
+  };
+
+  ['mb-min', 'mb-max', 'mb-size', 'mb-sort']
+    .forEach(id => {
+      document.getElementById(id)
+        .addEventListener('input', render);
+    });
+
+  grid.addEventListener('change', event => {
+    const input = event.target;
+
+    if (!input.matches('.mb-select input')) return;
+
+    const id = input.dataset.id;
+
+    if (input.checked) {
+      if (selected.size >= 3) {
+        input.checked = false;
+        alert('Możesz porównać maksymalnie 3 produkty.');
+        return;
+      }
+
+      selected.add(id);
+    } else {
+      selected.delete(id);
+    }
+
+    updateComparison();
+  });
+
+  if (products.length) render();
+})();
 </script>
 </body>
 </html>
