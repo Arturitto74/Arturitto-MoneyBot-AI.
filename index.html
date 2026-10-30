@@ -429,6 +429,27 @@ tools.after(comparison);
         : amount.toFixed(2) + ' zł';
 
       box.append(price);
+      const removeButton = document.createElement('button');
+
+removeButton.type = 'button';
+removeButton.textContent = '✕ Usuń z porównania';
+
+removeButton.style.cssText = `
+  background:#a93446;
+  color:white;
+  border:0;
+  border-radius:9px;
+  padding:10px 14px;
+  margin:10px 0;
+  cursor:pointer;
+`;
+
+removeButton.addEventListener('click', () => {
+  selected.delete(String(p.id));
+  render();
+});
+
+box.append(removeButton);
 
       const size = document.createElement('p');
       const lower = String(p.name || '').toLowerCase();
