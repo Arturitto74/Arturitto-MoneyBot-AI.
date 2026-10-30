@@ -1,236 +1,485 @@
 const SITE = "https://arturitto-moneybot-ai.pages.dev";
 const LIMIT = 5;
 
+// ============================================
+// TELEGRAM API
+// ============================================
+
 async function tg(token, method, data) {
-  const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  const j = await r.json();
-  if (!r.ok || !j.ok) throw Error(j.description || "Telegram API error");
-  return j;
+  const response = await fetch(
+    `https://api.telegram.org/bot${token}/${method}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || !result.ok) {
+    throw new Error(
+      result.description || "Telegram API error"
+    );
+  }
+
+  return result;
 }
 
-const send = (token, chat, text, keyboard) =>
-  tg(token, "sendMessage", {
+async function send(token, chat, text, keyboard = null) {
+  return tg(token, "sendMessage", {
     chat_id: chat,
     text,
     disable_web_page_preview: true,
-    ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {})
+    ...(keyboard
+      ? {
+          reply_markup: {
+            inline_keyboard: keyboard
+          }
+        }
+      : {})
   });
+}
 
-const productUrl = id =>
-  `${SITE}/produkt/${encodeURIComponent(id)}`;
+function productUrl(id) {
+  return `${SITE}/produkt/${encodeURIComponent(id)}`;
+}
+
+// ============================================
+// MENU GŁÓWNE
+// ============================================
 
 const menu = [
   [
-    { text: "🛒 Oferty", callback_data: "list:0" },
-    { text: "🔎 Wyszukiwanie", callback_data: "help" }
+    {
+      text: "🛒 Oferty",
+      callback_data: "list:0"
+    },
+    {
+      text: "🔎 Wyszukiwanie",
+      callback_data: "help"
+    }
   ],
   [
-    { text: "🔔 Powiadomienia", callback_data: "notify" },
-    { text: "🌐 MoneyBot", url: SITE }
+    {
+      text: "🔔 Powiadomienia",
+      callback_data: "notify"
+    },
+    {
+      text: "🌐 MoneyBot",
+      url: SITE
+    }
   ]
 ];
 
+async function showMenu(token, chat) {
+  await send(
+    token,
+    chat,
+    "🤖 ARTURITTO MONEYBOT AI\n\n" +
+    "🛒 /oferty — przeglądaj produkty\n" +
+    "🔎 /szukaj fotel — wyszukaj produkty\n" +
+    "📷 /produkt 1051 — szczegóły produktu\n" +
+    "🔔 /powiadomienia — ustawienia powiadomień\n" +
+    "✅ /wlacz — włącz powiadomienia\n" +
+    "❌ /wylacz — wyłącz powiadomienia\n\n" +
+    "Możesz też wpisać samą nazwę produktu.\n\n" +
+    "Oferty mogą zawierać linki afiliacyjne.",
+    menu
+  );
+}
+
+// ============================================
+// KATALOG PRODUKTÓW
+// ============================================
+
 async function catalog() {
-  const r = await fetch(`${SITE}/api/products`);
-  if (!r.ok) throw Error("Katalog niedostępny");
-  const j = await r.json();
-  if (!Array.isArray(j.products)) throw Error("Błędny katalog");
-  return j.products;
-}
+  const response = await fetch(`${SITE}/api/products`);
 
-function price(p) {
-  const n = Number(p.price);
-  return p.price != null && p.price !== "" &&
-    Number.isFinite(n) && n > 0
-      ? n.toLocaleString("pl-PL", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }) + " zł"
-      : "Sprawdź w sklepie";
-}
-
-async function list(token, chat, items, page = 0, query = "") {
-  const pages = Math.max(1, Math.ceil(items.length / LIMIT));
-  page = Math.min(Math.max(page, 0), pages - 1);
-  const selected = items.slice(page * LIMIT, (page + 1) * LIMIT);
-
-  let text = `🛒 MONEYBOT AI\n`;
-  text += `Znaleziono: ${items.length} · Strona ${page + 1}/${pages}\n\n`;
-
-  for (const p of selected) {
-    text += `🪑 ${p.name}\n`;
-    text += `💰 ${price(p)}\n\n`;
+  if (!response.ok) {
+    throw new Error("Katalog niedostępny");
   }
 
-  if (!selected.length) text += "Brak produktów.\n";
+  const data = await response.json();
+
+  if (!Array.isArray(data.products)) {
+    throw new Error("Nieprawidłowy katalog");
+  }
+
+  return data.products;
+}
+
+function price(product) {
+  const value = Number(product.price);
+
+  if (
+    product.price == null ||
+    product.price === "" ||
+    !Number.isFinite(value) ||
+    value <= 0
+  ) {
+    return "Sprawdź w sklepie";
+  }
+
+  return (
+    value.toLocaleString("pl-PL", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + " zł"
+  );
+}
+
+// ============================================
+// LISTA PRODUKTÓW
+// ============================================
+
+async function list(
+  token,
+  chat,
+  products,
+  page = 0,
+  query = ""
+) {
+  const pages = Math.max(
+    1,
+    Math.ceil(products.length / LIMIT)
+  );
+
+  page = Math.min(
+    Math.max(Number(page) || 0, 0),
+    pages - 1
+  );
+
+  const selected = products.slice(
+    page * LIMIT,
+    (page + 1) * LIMIT
+  );
+
+  let text = "🛒 ARTURITTO MONEYBOT AI\n\n";
+
+  text += `Znaleziono: ${products.length}\n`;
+  text += `Strona: ${page + 1}/${pages}\n\n`;
+
+  for (const product of selected) {
+    text += `🪑 ${product.name}\n`;
+    text += `💰 ${price(product)}\n\n`;
+  }
+
+  if (!selected.length) {
+    text += "Nie znaleziono produktów.\n\n";
+  }
 
   text += "Linki mogą mieć charakter afiliacyjny.";
 
-  const buttons = selected.map(p => [
+  const buttons = selected.map(product => [
     {
-      text: "📷 " + String(p.name).slice(0, 25),
-      callback_data: "p:" + String(p.id).slice(0, 40)
+      text: "📷 " + String(product.name).slice(0, 25),
+      callback_data: "p:" + String(product.id).slice(0, 40)
     },
     {
       text: "🔗 Oferta",
-      url: productUrl(p.id)
+      url: productUrl(product.id)
     }
   ]);
 
   if (!query) {
-    const nav = [];
-    if (page > 0)
-      nav.push({ text: "⬅️", callback_data: `list:${page - 1}` });
-    if (page + 1 < pages)
-      nav.push({ text: "➡️", callback_data: `list:${page + 1}` });
-    if (nav.length) buttons.push(nav);
+    const navigation = [];
+
+    if (page > 0) {
+      navigation.push({
+        text: "⬅️ Poprzednia",
+        callback_data: `list:${page - 1}`
+      });
+    }
+
+    if (page + 1 < pages) {
+      navigation.push({
+        text: "Następna ➡️",
+        callback_data: `list:${page + 1}`
+      });
+    }
+
+    if (navigation.length) {
+      buttons.push(navigation);
+    }
   }
 
-  buttons.push([{ text: "🏠 Menu", callback_data: "home" }]);
+  buttons.push([
+    {
+      text: "🏠 Menu główne",
+      callback_data: "home"
+    }
+  ]);
 
   await send(token, chat, text, buttons);
 }
 
-async function photo(token, chat, p) {
+// ============================================
+// ZDJĘCIE I SZCZEGÓŁY PRODUKTU
+// ============================================
+
+async function photo(token, chat, product) {
   const caption =
-    `🛒 ${p.name}\n\n` +
-    `💰 ${price(p)}\n\n` +
-    `${String(p.description || "").slice(0, 450)}\n\n` +
-    `Link afiliacyjny. Cena i dostępność mogą się zmienić.`;
+    `🛒 ${product.name}\n\n` +
+    `💰 ${price(product)}\n\n` +
+    `${String(product.description || "").slice(0, 450)}\n\n` +
+    "Link afiliacyjny. Cena i dostępność mogą się zmienić.";
 
   const buttons = [
-    [{ text: "🛍️ Zobacz ofertę", url: productUrl(p.id) }],
-    [{ text: "⬅️ Więcej ofert", callback_data: "list:0" }]
+    [
+      {
+        text: "🛍️ Zobacz ofertę",
+        url: productUrl(product.id)
+      }
+    ],
+    [
+      {
+        text: "⬅️ Więcej ofert",
+        callback_data: "list:0"
+      }
+    ]
   ];
 
   try {
-    const u = new URL(p.image);
-    if (u.protocol !== "https:") throw Error("Invalid image");
+    const image = new URL(product.image);
+
+    if (image.protocol !== "https:") {
+      throw new Error("Nieprawidłowy obraz");
+    }
 
     await tg(token, "sendPhoto", {
       chat_id: chat,
-      photo: u.href,
+      photo: image.href,
       caption: caption.slice(0, 1000),
-      reply_markup: { inline_keyboard: buttons }
+      reply_markup: {
+        inline_keyboard: buttons
+      }
     });
+
   } catch {
     await send(token, chat, caption, buttons);
   }
 }
 
-async function notifications(token, chat, env, action) {
+// ============================================
+// POWIADOMIENIA — CLOUDFLARE KV
+// ============================================
+
+async function notifications(
+  token,
+  chat,
+  env,
+  action = ""
+) {
   const kv = env.MONEYBOT_SUBSCRIBERS;
 
   if (!kv) {
-    return send(
+    await send(
       token,
       chat,
-      "🔔 Powiadomienia nie są jeszcze skonfigurowane.\n" +
-      "Najpierw podłączymy bazę subskrybentów w Cloudflare.",
-      menu
+      "⚠️ Baza powiadomień nie jest dostępna.\n" +
+      "Sprawdź powiązanie MONEYBOT_SUBSCRIBERS w Cloudflare."
     );
+
+    return;
   }
 
   const key = `subscriber:${chat}`;
 
-  if (action === "on")
-    await kv.put(key, new Date().toISOString());
+  // WŁĄCZANIE POWIADOMIEŃ
+  if (action === "on") {
+    await kv.put(
+      key,
+      JSON.stringify({
+        chatId: String(chat),
+        enabled: true,
+        createdAt: new Date().toISOString()
+      })
+    );
+  }
 
-  if (action === "off")
+  // WYŁĄCZANIE POWIADOMIEŃ
+  if (action === "off") {
     await kv.delete(key);
+  }
 
-  const active = Boolean(await kv.get(key));
+  // ODCZYT STANU SUBSKRYPCJI
+  const stored = await kv.get(key);
+  const active = stored !== null;
 
-  await send(
-    token,
-    chat,
-    `🔔 Powiadomienia: ${active ? "WŁĄCZONE" : "WYŁĄCZONE"}\n` +
-    "Automatyczna wysyłka ofert zostanie uruchomiona osobno.",
+  const keyboard = [
     [
-      [
-        { text: "✅ Włącz", callback_data: "sub:on" },
-        { text: "❌ Wyłącz", callback_data: "sub:off" }
-      ],
-      [{ text: "🏠 Menu", callback_data: "home" }]
+      {
+        text: "✅ Włącz",
+        callback_data: "sub:on"
+      },
+      {
+        text: "❌ Wyłącz",
+        callback_data: "sub:off"
+      }
+    ],
+    [
+      {
+        text: "🏠 Menu główne",
+        callback_data: "home"
+      }
     ]
-  );
+  ];
+
+  let text =
+    `🔔 POWIADOMIENIA MONEYBOT AI\n\n` +
+    `Status: ${active ? "✅ WŁĄCZONE" : "❌ WYŁĄCZONE"}\n\n`;
+
+  if (action === "on" && active) {
+    text += "✅ Zapisano subskrypcję.\n\n";
+  }
+
+  if (action === "off" && !active) {
+    text += "✅ Wyłączono subskrypcję.\n\n";
+  }
+
+  text +=
+    "Automatyczna wysyłka ofert zostanie " +
+    "uruchomiona osobno.\n\n" +
+    "Powiadomienia będą dotyczyć wyłącznie " +
+    "ofert dostępnych w MoneyBocie.";
+
+  await send(token, chat, text, keyboard);
 }
+
+// ============================================
+// WEBHOOK TELEGRAM
+// ============================================
 
 export async function onRequestPost({ request, env }) {
   const token = env.TELEGRAM_BOT_TOKEN;
   const secret = env.TELEGRAM_WEBHOOK_SECRET;
 
-  if (!token || !secret)
-    return new Response("Brak konfiguracji", { status: 503 });
+  // SPRAWDZENIE KONFIGURACJI
+  if (!token || !secret) {
+    return new Response(
+      "Brak konfiguracji Telegrama",
+      { status: 503 }
+    );
+  }
 
-  if (
-    request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== secret
-  ) {
-    return new Response("Unauthorized", { status: 401 });
+  // ZABEZPIECZENIE WEBHOOKA
+  const receivedSecret = request.headers.get(
+    "X-Telegram-Bot-Api-Secret-Token"
+  );
+
+  if (receivedSecret !== secret) {
+    return new Response(
+      "Unauthorized",
+      { status: 401 }
+    );
   }
 
   let update;
+
   try {
     update = await request.json();
   } catch {
-    return new Response("Invalid JSON", { status: 400 });
+    return new Response(
+      "Invalid JSON",
+      { status: 400 }
+    );
   }
 
   const callback = update.callback_query;
   const message = update.message;
-  const chat = callback?.message?.chat?.id ?? message?.chat?.id;
 
-  if (!chat) return new Response("OK");
+  const chat =
+    callback?.message?.chat?.id ??
+    message?.chat?.id;
 
-  if (callback) {
-    await tg(token, "answerCallbackQuery", {
-      callback_query_id: callback.id
-    }).catch(() => {});
+  if (!chat) {
+    return new Response("OK");
   }
 
-  const text = String(message?.text || "").trim().slice(0, 200);
-  const command = text.split(/\s+/)[0].toLowerCase().split("@")[0];
-  const data = String(callback?.data || "");
+  // POTWIERDZENIE KLIKNIĘCIA PRZYCISKU
+  if (callback) {
+    await tg(
+      token,
+      "answerCallbackQuery",
+      {
+        callback_query_id: callback.id
+      }
+    ).catch(() => {});
+  }
+
+  const text = String(
+    message?.text || ""
+  ).trim().slice(0, 200);
+
+  const command = text
+    .split(/\s+/)[0]
+    .toLowerCase()
+    .split("@")[0];
+
+  const data = String(
+    callback?.data || ""
+  );
 
   try {
+
+    // ========================================
+    // START I MENU
+    // ========================================
+
     if (
       command === "/start" ||
       command === "/pomoc" ||
       data === "home" ||
       data === "help"
     ) {
-      await send(
-        token,
-        chat,
-        "🤖 ARTURITTO MONEYBOT AI\n\n" +
-        "🛒 /oferty — przeglądaj produkty\n" +
-        "🔎 /szukaj fotel — wyszukaj produkty\n" +
-        "📷 /produkt 1051 — zdjęcie i szczegóły\n" +
-        "🔔 /powiadomienia — ustaw powiadomienia\n\n" +
-        "Możesz też wpisać samą nazwę produktu.\n\n" +
-        "Oferty zawierają linki afiliacyjne.",
-        menu
-      );
+      await showMenu(token, chat);
+    }
 
-    } else if (
+    // ========================================
+    // POWIADOMIENIA
+    // ========================================
+
+    else if (
       data === "notify" ||
       data.startsWith("sub:") ||
       command === "/powiadomienia" ||
-command === "/wlacz" ||
-command === "/wylacz"command === "/powiadomienia"
+      command === "/wlacz" ||
+      command === "/wylacz"
     ) {
-      const action =
-  command === "/wlacz" ? "on" :
-  command === "/wylacz" ? "off" :
-  data.startsWith("sub:") ? data.slice(4) : "";
+      let action = "";
 
-await notifications(token, chat, env, action);
+      if (command === "/wlacz") {
+        action = "on";
+      }
 
-    } else if (
+      else if (command === "/wylacz") {
+        action = "off";
+      }
+
+      else if (data === "sub:on") {
+        action = "on";
+      }
+
+      else if (data === "sub:off") {
+        action = "off";
+      }
+
+      await notifications(
+        token,
+        chat,
+        env,
+        action
+      );
+    }
+
+    // ========================================
+    // SZCZEGÓŁY PRODUKTU
+    // ========================================
+
+    else if (
       command === "/produkt" ||
       data.startsWith("p:")
     ) {
@@ -238,21 +487,50 @@ await notifications(token, chat, env, action);
         ? data.slice(2)
         : text.split(/\s+/)[1];
 
-      const p = (await catalog()).find(
-        x => String(x.id) === String(id)
+      const products = await catalog();
+
+      const product = products.find(
+        p => String(p.id) === String(id)
       );
 
-      if (p) await photo(token, chat, p);
-      else await send(token, chat, "Nie znaleziono produktu.");
+      if (product) {
+        await photo(token, chat, product);
+      } else {
+        await send(
+          token,
+          chat,
+          "Nie znaleziono produktu."
+        );
+      }
+    }
 
-    } else if (
+    // ========================================
+    // PRZEGLĄDANIE OFERT
+    // ========================================
+
+    else if (
       command === "/oferty" ||
       data.startsWith("list:")
     ) {
-      const page = Number(data.split(":")[1]) || 0;
-      await list(token, chat, await catalog(), page);
+      const page = data.startsWith("list:")
+        ? Number(data.slice(5)) || 0
+        : 0;
 
-    } else if (
+      const products = await catalog();
+
+      await list(
+        token,
+        chat,
+        products,
+        page
+      );
+    }
+
+    // ========================================
+    // WYSZUKIWANIE
+    // ========================================
+
+    else if (
       command === "/szukaj" ||
       (text && !text.startsWith("/"))
     ) {
@@ -261,25 +539,56 @@ await notifications(token, chat, env, action);
         : text;
 
       if (!query) {
-        await send(token, chat, "Wpisz np. /szukaj fotel");
+        await send(
+          token,
+          chat,
+          "🔎 Wpisz np. /szukaj fotel"
+        );
       } else {
-        const items = (await catalog()).filter(p =>
-          `${p.name} ${p.description || ""}`
+        const products = await catalog();
+
+        const found = products.filter(product =>
+          `${product.name} ${product.description || ""}`
             .toLocaleLowerCase("pl")
-            .includes(query.toLocaleLowerCase("pl"))
+            .includes(
+              query.toLocaleLowerCase("pl")
+            )
         );
 
-        await list(token, chat, items, 0, query);
+        await list(
+          token,
+          chat,
+          found,
+          0,
+          query
+        );
       }
+    }
 
-    } else {
-      await send(token, chat, "Wpisz /start, aby otworzyć menu.");
+    // ========================================
+    // NIEZNANA KOMENDA
+    // ========================================
+
+    else {
+      await send(
+        token,
+        chat,
+        "Nie znam tej komendy.\n" +
+        "Wpisz /start, aby otworzyć menu."
+      );
     }
 
     return new Response("OK");
 
   } catch (error) {
-    console.error("MoneyBot Telegram:", String(error.message).slice(0, 150));
-    return new Response("Bot error", { status: 502 });
+    console.error(
+      "MoneyBot Telegram:",
+      String(error.message).slice(0, 150)
+    );
+
+    return new Response(
+      "Bot error",
+      { status: 502 }
+    );
   }
 }
