@@ -3,40 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arturitto MoneyBot AI v1.2</title>
+
+<title>Arturitto MoneyBot AI v1.3.0 | Produkty i okazje</title>
+<meta name="description" content="MoneyBot AI. Przeglądaj fotele gamingowe, książki i okazje cenowe. Porównuj produkty i sprawdzaj oferty sklepów partnerskich.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://arturitto-moneybot-ai.pages.dev/">
 
 <style>
 :root {
   color-scheme: dark;
   font-family: system-ui, Arial, sans-serif;
+  --bg: #0b1120;
+  --panel: #18243a;
+  --card: #101b2e;
+  --border: #33435e;
+  --text: #f4f7ff;
+  --muted: #b6c5da;
+  --accent: #46b58c;
+  --green: #8ef0c4;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
-  background: #0b1120;
-  color: #f4f7ff;
+  background: var(--bg);
+  color: var(--text);
 }
 
 header {
   background: linear-gradient(120deg, #17284a, #153f3e);
-  padding: 38px 5%;
+  padding: 36px 5%;
+}
+
+.header-inner {
+  max-width: 1180px;
+  margin: auto;
 }
 
 h1 {
-  font-size: clamp(29px, 5vw, 46px);
-  margin: 0;
+  font-size: clamp(30px, 5vw, 46px);
+  margin: 10px 0;
 }
 
-p { color: #c1cee1; }
+h2 {
+  margin-top: 0;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.6;
+}
 
 .badge {
-  background: #125747;
-  padding: 8px 12px;
-  border-radius: 30px;
   display: inline-block;
-  margin-bottom: 16px;
+  background: #125747;
+  padding: 8px 13px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+nav a {
+  background: #243653;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #49617e;
+  padding: 11px 15px;
+  border-radius: 11px;
+  font-weight: 600;
+}
+
+nav a:hover {
+  background: #315173;
 }
 
 main {
@@ -46,136 +98,183 @@ main {
 }
 
 .panel {
-  background: #18243a;
-  border: 1px solid #33435e;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 23px;
-  margin: 18px 0;
+  margin: 20px 0;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.section-link {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.section-link:hover {
+  text-decoration: underline;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 13px;
+  background: #0b1120;
+  color: white;
+  border: 1px solid #536782;
+  border-radius: 10px;
+  font: inherit;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8ef0c4;
+  outline-offset: 3px;
+}
+
+.search-bar {
+  max-width: 720px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 
 .product {
-  background: #101b2e;
+  background: var(--card);
   border: 1px solid #31435e;
   border-radius: 15px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.product img {
-  width: 100%;
-  height: 210px;
-  object-fit: contain;
+.product-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 215px;
   background: white;
+  color: #17284a;
+  text-decoration: none;
 }
 
-.body { padding: 16px; }
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
-.body h3 {
+.product-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-body h3 {
   font-size: 16px;
-  min-height: 62px;
-  margin: 0 0 8px;
+  line-height: 1.4;
+  margin: 0 0 12px;
 }
 
-.product-detail-link {
+.product-body h3 a {
   color: inherit;
   text-decoration: none;
 }
 
-.product-detail-link:hover,
-.product-detail-link:focus-visible {
+.product-body h3 a:hover {
+  color: var(--green);
   text-decoration: underline;
-  color: #8ef0c4;
 }
 
-.product-image-link { display: block; }
+.product-type {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
 
 .price {
+  font-size: 23px;
   font-weight: 800;
-  font-size: 22px;
-  color: #8ef0c4;
+  color: var(--green);
+  margin: 10px 0 15px;
 }
 
 .btn {
-  display: inline-block;
-  background: #46b58c;
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--accent);
   color: #071a16;
-  padding: 11px 14px;
+  padding: 12px;
   border-radius: 10px;
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  margin-top: auto;
 }
 
-input {
-  width: 100%;
-  max-width: 500px;
-  padding: 14px;
-  border: 1px solid #536782;
-  background: #0b1120;
-  border-radius: 10px;
-  color: white;
+.btn:hover {
+  background: #66d5a9;
 }
 
-small { color: #9daec7; }
-
-footer {
-  text-align: center;
-  padding: 26px;
-  color: #acbdd1;
+.compare-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 13px;
+  font-size: 14px;
+  color: var(--green);
+  cursor: pointer;
 }
 
-/* PORÓWNYWARKA */
-
-.mb-tools {
-  background: #18243a;
-  border: 1px solid #33435e;
-  border-radius: 18px;
-  padding: 22px;
-  margin: 18px 0;
+.compare-label input {
+  width: auto;
 }
 
-.mb-filters {
+.compare-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
 }
 
-.mb-filters input,
-.mb-filters select {
-  width: 100%;
-  max-width: none;
-  padding: 12px;
-  background: #0b1120;
-  color: white;
-  border: 1px solid #536782;
-  border-radius: 10px;
-}
-
-.mb-compare {
-  background: #18243a;
-  border: 1px solid #46b58c;
-  border-radius: 18px;
-  padding: 22px;
-  margin: 18px 0;
-}
-
-.mb-compare-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
-}
-
-.mb-compare-item {
-  background: #101b2e;
+.compare-item {
+  background: var(--card);
   border-radius: 12px;
   padding: 15px;
 }
 
-.mb-compare-item img {
+.compare-item img {
   width: 100%;
   height: 160px;
   object-fit: contain;
@@ -183,122 +282,129 @@ footer {
   border-radius: 10px;
 }
 
-.mb-select {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  color: #8ef0c4;
-  font-size: 14px;
-  cursor: pointer;
+.compare-item h3 {
+  font-size: 16px;
 }
 
-.mb-select input { width: auto; }
-
-.mb-remove {
+.remove-btn {
   background: #a93446;
   color: white;
   border: 0;
   border-radius: 9px;
   padding: 10px 14px;
-  margin: 10px 0;
   cursor: pointer;
 }
 
-/* AUTOMATYCZNE OBNIŻKI */
-
-#mb-price-drops {
-  margin: 25px 0;
-  padding: 20px;
-  color: #f8fafc;
-  background: #18243a;
-  border: 1px solid #33435e;
-  border-radius: 18px;
+.compare-panel {
+  border-color: var(--accent);
 }
 
-#mb-price-drops[hidden] {
-  display: none;
-}
-
-#mb-price-drops h2 {
-  font-size: 27px;
-  margin-bottom: 8px;
-}
-
-.mb-drops-subtitle {
-  color: #94a3b8;
-  margin-bottom: 22px;
-}
-
-.mb-drops-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-}
-
-.mb-drop-card {
-  background: #101b2e;
-  border: 1px solid #334155;
-  border-radius: 18px;
+.drop-card {
+  border: 1px solid #4b5563;
+  background: var(--card);
+  border-radius: 15px;
   padding: 16px;
-  overflow: hidden;
 }
 
-.mb-drop-card img {
+.drop-card img {
   width: 100%;
-  height: 185px;
+  height: 190px;
   object-fit: contain;
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
-.mb-drop-badge {
+.drop-card h3 {
+  font-size: 16px;
+}
+
+.drop-badge {
   display: inline-block;
-  margin: 12px 0;
-  padding: 7px 11px;
-  border-radius: 9px;
   background: #dc2626;
-  color: white;
+  padding: 8px 12px;
+  border-radius: 9px;
+  margin-top: 12px;
   font-weight: bold;
 }
 
-.mb-drop-card h3 {
-  font-size: 16px;
-  line-height: 1.5;
-  min-height: 48px;
-}
-
-.mb-drop-old {
-  color: #94a3b8;
+.old-price {
   text-decoration: line-through;
+  color: #a7b4c7;
 }
 
-.mb-drop-new {
-  font-size: 25px;
+.new-price {
+  font-size: 24px;
   color: #4ade80;
   font-weight: bold;
-  margin: 8px 0;
 }
 
-.mb-drop-saving {
+.saving {
   color: #fbbf24;
+}
+
+.status {
   font-size: 14px;
+  color: #a9bfd6;
 }
 
-.mb-drop-button {
-  display: block;
+.error {
+  color: #fca5a5;
+}
+
+.empty {
+  padding: 22px;
+  border: 1px dashed #52647b;
+  border-radius: 12px;
+  color: #b6c5da;
+}
+
+.category-counter {
+  font-size: 14px;
+  color: #a9bfd6;
+}
+
+footer {
+  max-width: 1180px;
+  margin: auto;
+  padding: 30px 18px;
   text-align: center;
-  text-decoration: none;
-  margin-top: 16px;
-  padding: 13px;
-  background: #16a34a;
-  color: white;
-  border-radius: 10px;
-  font-weight: bold;
+  color: #acbdd1;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
-.mb-drop-button:hover {
-  background: #15803d;
+footer a {
+  color: var(--green);
+}
+
+@media (max-width: 600px) {
+  header {
+    padding: 26px 18px;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .product-image {
+    height: 170px;
+  }
+
+  .product-body {
+    padding: 12px;
+  }
+
+  .product-body h3 {
+    font-size: 14px;
+  }
+
+  .price {
+    font-size: 19px;
+  }
 }
 </style>
 </head>
@@ -306,370 +412,732 @@ footer {
 <body>
 
 <header>
-  <span class="badge">Katalog produktów · v1.2</span>
-  <h1>🤖 Arturitto MoneyBot AI</h1>
-  <p>
-    Produkty z katalogów partnerskich.
-    Ceny i dostępność potwierdź w sklepie.
-  </p>
+  <div class="header-inner">
+
+    <span class="badge">
+      MoneyBot AI · v1.3.0
+    </span>
+
+    <h1>🤖 Arturitto MoneyBot AI</h1>
+
+    <p>
+      Wyszukuj produkty, porównuj ceny i odkrywaj okazje
+      z katalogów sklepów partnerskich.
+    </p>
+
+    <nav aria-label="Menu główne">
+      <a href="#wyszukiwarka">🔎 Wyszukiwarka</a>
+      <a href="#fotele">🪑 Fotele</a>
+      <a href="#ksiazki">📚 Książki</a>
+      <a href="#promocje">🔥 Promocje</a>
+      <a href="/fotele-gamingowe">⚖️ Katalog foteli</a>
+    </nav>
+
+  </div>
 </header>
 
 <main>
 
-  <section class="panel">
-    <h2>🔎 Znajdź produkt</h2>
+  <section id="wyszukiwarka" class="panel">
+    <h2>🔎 Wyszukaj produkt</h2>
+
+    <p>
+      Jedna wyszukiwarka dla foteli gamingowych
+      oraz książek.
+    </p>
 
     <input
       id="search"
-      placeholder="Szukaj nazwy produktu…"
-      aria-label="Szukaj produktów"
+      class="search-bar"
+      type="search"
+      placeholder="Wpisz nazwę produktu lub książki..."
+      aria-label="Wyszukaj produkty"
     >
 
-    <p id="status" role="status">Pobieranie katalogu…</p>
-    <small id="updated"></small>
+    <p id="global-status" class="status" role="status">
+      Pobieranie katalogów...
+    </p>
   </section>
 
-  <section id="mb-price-drops" hidden></section>
+  <section id="promocje" class="panel" hidden>
+    <div class="section-header">
+      <h2>🔥 Największe obniżki cen</h2>
+    </div>
 
-  <section class="mb-tools">
-    <h2>⚖️ Porównywarka produktów</h2>
-    <p>Znajdź najlepszy fotel i porównaj maksymalnie 3 modele.</p>
+    <p>
+      Obniżki wykryte na podstawie wcześniejszych
+      pomiarów cen.
+    </p>
 
-    <div class="mb-filters">
-      <input id="mb-min" type="number" min="0"
-             placeholder="Cena od (zł)">
+    <div id="drops-grid" class="grid"></div>
+  </section>
 
-      <input id="mb-max" type="number" min="0"
-             placeholder="Cena do (zł)">
+  <section id="porownywarka" class="panel">
 
-      <select id="mb-size">
+    <h2>⚖️ Porównywarka foteli</h2>
+
+    <p>
+      Wybierz maksymalnie trzy fotele do porównania.
+    </p>
+
+    <div class="filters">
+
+      <input
+        id="min-price"
+        type="number"
+        min="0"
+        placeholder="Cena od (zł)"
+      >
+
+      <input
+        id="max-price"
+        type="number"
+        min="0"
+        placeholder="Cena do (zł)"
+      >
+
+      <select id="size-filter" aria-label="Rozmiar fotela">
         <option value="">Wszystkie rozmiary</option>
         <option value="normal">Normal Size</option>
         <option value="king">King Size</option>
       </select>
 
-      <select id="mb-sort">
+      <select id="sort-filter" aria-label="Sortowanie foteli">
         <option value="">Sortowanie domyślne</option>
         <option value="asc">Najtańsze</option>
         <option value="desc">Najdroższe</option>
       </select>
+
     </div>
   </section>
 
-  <section id="comparison" class="mb-compare" hidden></section>
+  <section id="comparison" class="panel compare-panel" hidden>
+    <h2>⚖️ Porównanie produktów</h2>
+    <div id="comparison-grid" class="compare-grid"></div>
+  </section>
 
-  <section id="products" class="grid"></section>
+  <section id="fotele" class="panel">
+
+    <div class="section-header">
+      <h2>🪑 Fotele gamingowe i biurowe</h2>
+
+      <a class="section-link" href="/fotele-gamingowe">
+        Zobacz kategorię →
+      </a>
+    </div>
+
+    <p id="furniture-status" class="status">
+      Pobieranie produktów...
+    </p>
+
+    <div id="furniture-grid" class="grid"></div>
+
+  </section>
+
+  <section id="ksiazki" class="panel">
+
+    <div class="section-header">
+      <h2>📚 Książki i literatura</h2>
+    </div>
+
+    <p>
+      Oferty TaniaKsiazka.pl dostępne przez WebePartners.
+    </p>
+
+    <p id="books-status" class="status">
+      Pobieranie książek...
+    </p>
+
+    <div id="books-grid" class="grid"></div>
+
+  </section>
 
   <section class="panel">
-    <h2>ℹ️ Informacja o linkach</h2>
+    <h2>ℹ️ Informacja o ofertach</h2>
+
     <p>
-      Kliknięcie nazwy lub zdjęcia otwiera szczegóły produktu.
-      Przycisk oferty prowadzi przez przekierowanie partnerskie
-      WebePartners. Prowizje zależą od zasad programu i poprawnego
-      przypisania sprzedaży.
+      MoneyBot AI prezentuje produkty sklepów partnerskich.
+      Ceny i dostępność należy potwierdzić bezpośrednio
+      w sklepie.
+    </p>
+
+    <p>
+      Linki do sklepów mogą mieć charakter afiliacyjny.
+      Jeśli dokonasz zakupu, możemy otrzymać prowizję
+      zgodnie z warunkami programu partnerskiego.
     </p>
   </section>
 
 </main>
 
 <footer>
-  Arturitto MoneyBot AI · Dane katalogu odświeżane
-  w pamięci serwera maksymalnie co 3 godziny.
+  <strong>Arturitto MoneyBot AI v1.3.0</strong>
+  <br>
+  Katalog produktów · Porównywarka · Promocje
+  <br>
+  © 2026 Arturitto
 </footer>
 
 <script>
-let products = [];
+"use strict";
 
-const grid = document.querySelector('#products');
-const status = document.querySelector('#status');
-const search = document.querySelector('#search');
-const comparison = document.querySelector('#comparison');
+// ============================================
+// KONFIGURACJA
+// ============================================
+
+const APP_VERSION = "1.3.0";
+
+const API = {
+  furniture: "/api/products",
+  books: "/api/books",
+  drops: "/api/price-drops"
+};
+
+let furnitureProducts = [];
+let bookProducts = [];
+
+let furnitureLoaded = false;
+let booksLoaded = false;
 
 const selected = new Set();
 
-const minInput = document.querySelector('#mb-min');
-const maxInput = document.querySelector('#mb-max');
-const sizeInput = document.querySelector('#mb-size');
-const sortInput = document.querySelector('#mb-sort');
+const $ = selector => document.querySelector(selector);
+
+const searchInput = $("#search");
+const furnitureGrid = $("#furniture-grid");
+const booksGrid = $("#books-grid");
+
+const minInput = $("#min-price");
+const maxInput = $("#max-price");
+const sizeInput = $("#size-filter");
+const sortInput = $("#sort-filter");
+
+// ============================================
+// NARZĘDZIA
+// ============================================
 
 function getPrice(product) {
-  const value = String(product.price ?? '')
-    .replace(',', '.')
-    .replace(/\s/g, '');
+  const value = String(product?.price ?? "")
+    .replace(",", ".")
+    .replace(/\s/g, "");
 
-  const price = Number(value);
+  if (!value) return null;
 
-  return Number.isFinite(price) && price > 0 ? price : null;
+  const number = Number(value);
+
+  return Number.isFinite(number) && number > 0
+    ? number
+    : null;
 }
 
-function formatPrice(amount) {
-  return new Intl.NumberFormat('pl-PL', {
-    style: 'currency',
-    currency: 'PLN'
-  }).format(amount);
+function money(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "Cena niedostępna";
+  }
+
+  return number.toLocaleString("pl-PL", {
+    style: "currency",
+    currency: "PLN"
+  });
+}
+
+function normalize(value) {
+  return String(value ?? "")
+    .toLocaleLowerCase("pl");
 }
 
 function getSize(product) {
-  const name = String(product.name || '').toLowerCase();
+  const name = normalize(product.name);
 
-  if (name.includes('king size')) return 'King Size';
-  if (name.includes('normal size')) return 'Normal Size';
+  if (name.includes("king size")) return "King Size";
+  if (name.includes("normal size")) return "Normal Size";
 
-  return 'Niepodany';
+  return "Niepodany";
 }
 
-function makeProductCard(product) {
-  const card = document.createElement('article');
-  card.className = 'product';
+function validImage(value) {
+  try {
+    const url = new URL(value, location.origin);
 
-  const hasId = product.id !== undefined &&
-    product.id !== null &&
-    String(product.id) !== '';
+    return ["https:", "http:"].includes(url.protocol)
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
 
-  const id = String(product.id ?? '');
+function create(tag, className, text) {
+  const element = document.createElement(tag);
 
-  const detailUrl = hasId
-    ? '/produkt/' + encodeURIComponent(id)
+  if (className) element.className = className;
+
+  if (text !== undefined) {
+    element.textContent = String(text);
+  }
+
+  return element;
+}
+
+function createImage(product) {
+  const url = validImage(product.image);
+
+  if (!url) {
+    return create("span", "", "📦");
+  }
+
+  const image = document.createElement("img");
+
+  image.src = url;
+  image.alt = product.name || "Produkt";
+  image.loading = "lazy";
+  image.referrerPolicy = "no-referrer";
+
+  return image;
+}
+
+function validAffiliateUrl(value) {
+  try {
+    const url = new URL(value);
+
+    return url.protocol === "https:" &&
+      (
+        url.hostname === "webep1.com" ||
+        url.hostname.endsWith(".webep1.com")
+      )
+        ? url.href
+        : null;
+  } catch {
+    return null;
+  }
+}
+
+function furnitureDetailUrl(product) {
+  if (product.id === null || product.id === undefined) {
+    return null;
+  }
+
+  const id = String(product.id);
+
+  if (!id) return null;
+
+  return "/produkt/" + encodeURIComponent(id);
+}
+
+function furnitureShopUrl(product) {
+  if (product.id === null || product.id === undefined) {
+    return null;
+  }
+
+  const id = String(product.id);
+
+  if (!id) return null;
+
+  return "/api/go?id=" + encodeURIComponent(id);
+}
+
+// ============================================
+// KARTY PRODUKTÓW
+// ============================================
+
+function makeCard(product, type) {
+  const card = create("article", "product");
+  const imageBox = create("div", "product-image");
+
+  const detailUrl = type === "furniture"
+    ? furnitureDetailUrl(product)
     : null;
 
-  if (product.image) {
-    const img = document.createElement('img');
-    img.src = product.image;
-    img.alt = product.name || 'Produkt';
-    img.loading = 'lazy';
-    img.referrerPolicy = 'no-referrer';
+  const shopUrl = type === "furniture"
+    ? furnitureShopUrl(product)
+    : validAffiliateUrl(product.url);
 
-    if (detailUrl) {
-      const imageLink = document.createElement('a');
-      imageLink.href = detailUrl;
-      imageLink.className = 'product-image-link';
-      imageLink.setAttribute(
-        'aria-label',
-        'Szczegóły produktu: ' + (product.name || 'Produkt')
-      );
-      imageLink.append(img);
-      card.append(imageLink);
-    } else {
-      card.append(img);
-    }
-  }
-
-  const body = document.createElement('div');
-  body.className = 'body';
-
-  const title = document.createElement('h3');
+  const image = createImage(product);
 
   if (detailUrl) {
-    const titleLink = document.createElement('a');
-    titleLink.href = detailUrl;
-    titleLink.className = 'product-detail-link';
-    titleLink.textContent = product.name || 'Produkt';
-    title.append(titleLink);
+    const link = document.createElement("a");
+
+    link.href = detailUrl;
+    link.className = "product-image";
+    link.setAttribute(
+      "aria-label",
+      "Szczegóły: " + (product.name || "Produkt")
+    );
+
+    link.append(image);
+    card.append(link);
   } else {
-    title.textContent = product.name || 'Produkt';
+    imageBox.append(image);
+    card.append(imageBox);
   }
 
-  body.append(title);
+  const body = create("div", "product-body");
+
+  const typeLabel = create(
+    "span",
+    "product-type",
+    type === "furniture"
+      ? "🪑 Diablo Chairs"
+      : "📚 TaniaKsiazka.pl"
+  );
+
+  body.append(typeLabel);
+
+  const heading = create("h3");
+
+  if (detailUrl) {
+    const titleLink = document.createElement("a");
+
+    titleLink.href = detailUrl;
+    titleLink.textContent = product.name || "Produkt";
+
+    heading.append(titleLink);
+  } else {
+    heading.textContent = product.name || "Produkt";
+  }
+
+  body.append(heading);
+
+  if (type === "books" && product.category) {
+    body.append(
+      create("small", "", product.category)
+    );
+  }
 
   const price = getPrice(product);
 
-  if (price !== null) {
-    const priceElement = document.createElement('p');
-    priceElement.className = 'price';
-    priceElement.textContent = formatPrice(price);
-    body.append(priceElement);
-  }
+  body.append(
+    create(
+      "div",
+      "price",
+      price === null
+        ? "Sprawdź cenę"
+        : money(price)
+    )
+  );
 
-  if (hasId) {
-    const link = document.createElement('a');
-    link.className = 'btn';
-    link.href = '/api/go?id=' + encodeURIComponent(id);
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer sponsored';
-    link.textContent = 'Sprawdź w sklepie ↗';
-    body.append(link);
+  if (shopUrl) {
+    const button = create(
+      "a",
+      "btn",
+      "Sprawdź w sklepie ↗"
+    );
+
+    button.href = shopUrl;
+    button.target = "_blank";
+    button.rel = "noopener noreferrer sponsored";
+
+    body.append(button);
   } else {
-    const note = document.createElement('small');
-    note.textContent = 'Brak identyfikatora oferty';
-    body.append(note);
+    body.append(
+      create("small", "", "Oferta chwilowo niedostępna")
+    );
   }
 
-  if (hasId) {
-    const label = document.createElement('label');
-    label.className = 'mb-select';
+  if (type === "furniture" && detailUrl) {
+    const label = create("label", "compare-label");
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.dataset.id = id;
-    checkbox.checked = selected.has(id);
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.id = String(product.id);
+    checkbox.checked = selected.has(String(product.id));
 
     label.append(
       checkbox,
-      document.createTextNode('Dodaj do porównania')
+      document.createTextNode("Dodaj do porównania")
     );
 
     body.append(label);
   }
 
   card.append(body);
+
   return card;
 }
 
-function updateComparison() {
-  const chosen = products.filter(product =>
-    selected.has(String(product.id))
+// ============================================
+// WYSZUKIWARKA
+// ============================================
+
+function matchesSearch(product) {
+  const query = normalize(searchInput.value.trim());
+
+  const text = normalize(
+    [
+      product.name,
+      product.description,
+      product.category
+    ].join(" ")
   );
 
-  comparison.replaceChildren();
-  comparison.hidden = chosen.length === 0;
-
-  if (!chosen.length) return;
-
-  const heading = document.createElement('h2');
-  heading.textContent = `⚖️ Porównanie (${chosen.length}/3)`;
-
-  const container = document.createElement('div');
-  container.className = 'mb-compare-grid';
-
-  for (const product of chosen) {
-    const box = document.createElement('div');
-    box.className = 'mb-compare-item';
-
-    if (product.image) {
-      const img = document.createElement('img');
-      img.src = product.image;
-      img.alt = product.name || 'Produkt';
-      img.loading = 'lazy';
-      box.append(img);
-    }
-
-    const name = document.createElement('h3');
-    name.textContent = product.name || 'Produkt';
-    box.append(name);
-
-    const price = document.createElement('p');
-    const amount = getPrice(product);
-
-    price.textContent = amount === null
-      ? 'Cena niedostępna'
-      : formatPrice(amount);
-
-    box.append(price);
-
-    // Jeden przycisk usuwania, bez duplikatów.
-    const removeButton = document.createElement('button');
-    removeButton.type = 'button';
-    removeButton.className = 'mb-remove';
-    removeButton.textContent = '✕ Usuń z porównania';
-
-    removeButton.addEventListener('click', () => {
-      selected.delete(String(product.id));
-      render();
-    });
-
-    box.append(removeButton);
-
-    const size = document.createElement('p');
-    size.textContent = 'Rozmiar: ' + getSize(product);
-    box.append(size);
-
-    const link = document.createElement('a');
-    link.href = '/produkt/' +
-      encodeURIComponent(String(product.id));
-    link.textContent = 'Szczegóły produktu →';
-
-    box.append(link);
-    container.append(box);
-  }
-
-  comparison.append(heading, container);
+  return text.includes(query);
 }
 
-function render() {
-  const query = search.value.trim().toLocaleLowerCase('pl');
+// ============================================
+// FILTRY FOTELI
+// ============================================
 
-  const minRaw = minInput.value;
-  const maxRaw = maxInput.value;
+function filteredFurniture() {
+  const min = minInput.value === ""
+    ? null
+    : Number(minInput.value);
 
-  const min = minRaw === '' ? null : Number(minRaw);
-  const max = maxRaw === '' ? null : Number(maxRaw);
+  const max = maxInput.value === ""
+    ? null
+    : Number(maxInput.value);
 
   const size = sizeInput.value;
-  const sort = sortInput.value;
 
-  const visible = products.filter(product => {
-    const text = (
-      String(product.name || '') + ' ' +
-      String(product.description || '')
-    ).toLocaleLowerCase('pl');
-
-    if (!text.includes(query)) return false;
+  const result = furnitureProducts.filter(product => {
+    if (!matchesSearch(product)) return false;
 
     const price = getPrice(product);
 
-    if (min !== null && (price === null || price < min))
+    if (min !== null && (price === null || price < min)) {
       return false;
+    }
 
-    if (max !== null && (price === null || price > max))
+    if (max !== null && (price === null || price > max)) {
       return false;
+    }
 
-    const name = String(product.name || '').toLowerCase();
+    const name = normalize(product.name);
 
-    if (size === 'normal' && !name.includes('normal size'))
+    if (size === "normal" && !name.includes("normal size")) {
       return false;
+    }
 
-    if (size === 'king' && !name.includes('king size'))
+    if (size === "king" && !name.includes("king size")) {
       return false;
+    }
 
     return true;
   });
 
-  if (sort === 'asc') {
-    visible.sort((a, b) =>
+  if (sortInput.value === "asc") {
+    result.sort((a, b) =>
       (getPrice(a) ?? Infinity) -
       (getPrice(b) ?? Infinity)
     );
-  } else if (sort === 'desc') {
-    visible.sort((a, b) =>
+  }
+
+  if (sortInput.value === "desc") {
+    result.sort((a, b) =>
       (getPrice(b) ?? -Infinity) -
       (getPrice(a) ?? -Infinity)
     );
   }
 
-  grid.replaceChildren();
-
-  for (const product of visible) {
-    grid.append(makeProductCard(product));
-  }
-
-  if (!visible.length) {
-    const empty = document.createElement('p');
-    empty.textContent = 'Brak produktów spełniających kryteria.';
-    grid.append(empty);
-  }
-
-  status.textContent =
-    `Produktów: ${products.length} · Wyświetlono: ${visible.length}`;
-
-  updateComparison();
+  return result;
 }
 
-search.addEventListener('input', render);
+// ============================================
+// PORÓWNYWARKA
+// ============================================
 
-[minInput, maxInput, sizeInput, sortInput]
-  .forEach(element => element.addEventListener('input', render));
+function renderComparison() {
+  const section = $("#comparison");
+  const grid = $("#comparison-grid");
 
-grid.addEventListener('change', event => {
+  const chosen = furnitureProducts.filter(product =>
+    selected.has(String(product.id))
+  );
+
+  section.hidden = chosen.length === 0;
+  grid.replaceChildren();
+
+  if (!chosen.length) return;
+
+  section.querySelector("h2").textContent =
+    `⚖️ Porównanie produktów (${chosen.length}/3)`;
+
+  for (const product of chosen) {
+    const box = create("div", "compare-item");
+
+    const imgUrl = validImage(product.image);
+
+    if (imgUrl) {
+      box.append(createImage(product));
+    }
+
+    box.append(
+      create("h3", "", product.name || "Produkt")
+    );
+
+    const amount = getPrice(product);
+
+    box.append(
+      create(
+        "p",
+        "price",
+        amount === null ? "Cena niedostępna" : money(amount)
+      )
+    );
+
+    box.append(
+      create(
+        "p",
+        "",
+        "Rozmiar: " + getSize(product)
+      )
+    );
+
+    const removeButton = create(
+      "button",
+      "remove-btn",
+      "✕ Usuń z porównania"
+    );
+
+    removeButton.type = "button";
+
+    removeButton.addEventListener("click", () => {
+      selected.delete(String(product.id));
+      renderAll();
+    });
+
+    box.append(removeButton);
+
+    const detailUrl = furnitureDetailUrl(product);
+
+    if (detailUrl) {
+      const link = create(
+        "a",
+        "section-link",
+        "Szczegóły produktu →"
+      );
+
+      link.href = detailUrl;
+      box.append(link);
+    }
+
+    grid.append(box);
+  }
+}
+
+// ============================================
+// WYŚWIETLANIE KATALOGÓW
+// ============================================
+
+function renderFurniture() {
+  const visible = filteredFurniture();
+
+  furnitureGrid.replaceChildren();
+
+  const fragment = document.createDocumentFragment();
+
+  for (const product of visible) {
+    fragment.append(makeCard(product, "furniture"));
+  }
+
+  furnitureGrid.append(fragment);
+
+  if (!visible.length && furnitureLoaded) {
+    furnitureGrid.append(
+      create(
+        "p",
+        "empty",
+        "Nie znaleziono pasujących foteli."
+      )
+    );
+  }
+
+  if (furnitureLoaded) {
+    $("#furniture-status").textContent =
+      `Fotele: ${furnitureProducts.length} · Wyświetlono: ${visible.length}`;
+  }
+}
+
+function renderBooks() {
+  const visible = bookProducts.filter(matchesSearch);
+
+  booksGrid.replaceChildren();
+
+  const fragment = document.createDocumentFragment();
+
+  for (const book of visible) {
+    fragment.append(makeCard(book, "books"));
+  }
+
+  booksGrid.append(fragment);
+
+  if (!visible.length && booksLoaded) {
+    booksGrid.append(
+      create(
+        "p",
+        "empty",
+        "Nie znaleziono pasujących książek."
+      )
+    );
+  }
+
+  if (booksLoaded) {
+    $("#books-status").textContent =
+      `Książki: ${bookProducts.length} · Wyświetlono: ${visible.length}`;
+  }
+}
+
+function updateGlobalStatus() {
+  const total = furnitureProducts.length + bookProducts.length;
+
+  const visibleFurniture = filteredFurniture().length;
+
+  const visibleBooks = bookProducts
+    .filter(matchesSearch)
+    .length;
+
+  const visible = visibleFurniture + visibleBooks;
+
+  const state = furnitureLoaded && booksLoaded
+    ? ""
+    : " · Nie wszystkie katalogi są dostępne";
+
+  $("#global-status").textContent =
+    `Produkty: ${total} · Wyświetlono: ${visible}${state}`;
+}
+
+function renderAll() {
+  renderFurniture();
+  renderBooks();
+  renderComparison();
+  updateGlobalStatus();
+}
+
+// ============================================
+// ZMIANA FILTRÓW
+// ============================================
+
+searchInput.addEventListener("input", renderAll);
+
+[
+  minInput,
+  maxInput,
+  sizeInput,
+  sortInput
+].forEach(element => {
+  element.addEventListener("input", renderAll);
+});
+
+furnitureGrid.addEventListener("change", event => {
   const input = event.target;
 
-  if (!input.matches('.mb-select input')) return;
+  if (
+    !(input instanceof HTMLInputElement) ||
+    !input.matches(".compare-label input")
+  ) {
+    return;
+  }
 
   const id = input.dataset.id;
+
+  if (!id) return;
 
   if (input.checked) {
     if (selected.size >= 3) {
       input.checked = false;
-      alert('Możesz porównać maksymalnie 3 produkty.');
+
+      alert("Możesz porównać maksymalnie 3 produkty.");
       return;
     }
 
@@ -678,263 +1146,51 @@ grid.addEventListener('change', event => {
     selected.delete(id);
   }
 
-  updateComparison();
+  renderComparison();
 });
 
-fetch('/api/products')
-  .then(async response => {
-    const data = await response.json();
+// ============================================
+// POBIERANIE FOTELI
+// ============================================
+
+async function loadFurniture() {
+  try {
+    const response = await fetch(API.furniture);
 
     if (!response.ok) {
-      throw new Error(data.error || 'Błąd HTTP ' + response.status);
+      throw new Error(`HTTP ${response.status}`);
     }
-
-    products = Array.isArray(data.products)
-      ? data.products
-      : [];
-
-    const date = data.fetchedAt &&
-      !Number.isNaN(Date.parse(data.fetchedAt))
-        ? new Date(data.fetchedAt).toLocaleString('pl-PL')
-        : 'brak daty';
-
-    document.querySelector('#updated').textContent =
-      'Źródło: ' + (data.source || 'XML') +
-      ' · Aktualizacja: ' + date;
-
-    render();
-  })
-  .catch(error => {
-    status.textContent =
-      'Nie udało się pobrać katalogu: ' + error.message;
-  });
-
-/* AUTOMATYCZNE OBNIŻKI */
-
-(async function loadPriceDrops() {
-  const section = document.querySelector('#mb-price-drops');
-
-  try {
-    const response = await fetch('/api/price-drops', {
-      cache: 'no-store'
-    });
-
-    if (!response.ok) return;
 
     const data = await response.json();
 
-    if (
-      data.status !== 'ok' ||
-      !Array.isArray(data.promotions) ||
-      data.promotions.length === 0
-    ) {
-      return;
+    if (!Array.isArray(data.products)) {
+      throw new Error("Nieprawidłowy katalog");
     }
 
-    const catalogResponse = await fetch('/api/products');
+    furnitureProducts = data.products;
+    furnitureLoaded = true;
 
-    const catalog = catalogResponse.ok
-      ? await catalogResponse.json()
-      : { products: [] };
-
-    const productMap = new Map(
-      (catalog.products || []).map(product => [
-        String(product.id),
-        product
-      ])
-    );
-
-    const heading = document.createElement('h2');
-    heading.textContent = '🔥 Największe obniżki cen';
-
-    const subtitle = document.createElement('p');
-    subtitle.className = 'mb-drops-subtitle';
-    subtitle.textContent =
-      'Spadki cen wykryte przez MoneyBot AI względem poprzedniego pomiaru';
-
-    const cards = document.createElement('div');
-    cards.className = 'mb-drops-grid';
-
-    for (const promotion of data.promotions.slice(0, 12)) {
-      const product = productMap.get(String(promotion.id));
-
-      const card = document.createElement('article');
-      card.className = 'mb-drop-card';
-
-      if (product?.image) {
-        const img = document.createElement('img');
-        img.src = product.image;
-        img.alt = promotion.name || 'Produkt';
-        img.loading = 'lazy';
-        img.referrerPolicy = 'no-referrer';
-        card.append(img);
-      }
-
-      const badge = document.createElement('div');
-      badge.className = 'mb-drop-badge';
-      badge.textContent =
-        '🔥 -' + promotion.discountPercent + '%';
-
-      const name = document.createElement('h3');
-      name.textContent = promotion.name || 'Produkt';
-
-      const oldPrice = document.createElement('div');
-      oldPrice.className = 'mb-drop-old';
-      oldPrice.textContent = formatPrice(promotion.oldPrice);
-
-      const newPrice = document.createElement('div');
-      newPrice.className = 'mb-drop-new';
-      newPrice.textContent = formatPrice(promotion.newPrice);
-
-      const saving = document.createElement('div');
-      saving.className = 'mb-drop-saving';
-      saving.textContent =
-        'Różnica: ' + formatPrice(promotion.saving);
-
-      const link = document.createElement('a');
-      link.className = 'mb-drop-button';
-      link.href = promotion.url;
-      link.textContent = 'Zobacz ofertę →';
-
-      card.append(
-        badge,
-        name,
-        oldPrice,
-        newPrice,
-        saving,
-        link
-      );
-
-      cards.append(card);
-    }
-
-    section.replaceChildren(heading, subtitle, cards);
-    section.hidden = false;
+    renderAll();
 
   } catch (error) {
-    console.warn('MoneyBot: nie udało się pobrać obniżek.');
+    $("#furniture-status").textContent =
+      "Nie udało się pobrać foteli: " + error.message;
+
+    $("#furniture-status").classList.add("error");
+    updateGlobalStatus();
   }
-})();
-</script>
-
-<!-- MONEYBOT AI V1.3 - KSIĄŻKI -->
-<style>
-#mb-books {
-  background: #18243a;
-  border: 1px solid #33435e;
-  border-radius: 18px;
-  padding: 22px;
-  margin: 20px 0;
 }
 
-#mb-books[hidden] {
-  display: none;
-}
+// ============================================
+// POBIERANIE KSIĄŻEK
+// ============================================
 
-#mb-books h2 {
-  margin-top: 0;
-}
-
-.mb-books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.mb-book {
-  background: #101b2e;
-  border: 1px solid #31435e;
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.mb-book img {
-  width: 100%;
-  height: 230px;
-  object-fit: contain;
-  background: white;
-}
-
-.mb-book-body {
-  padding: 16px;
-}
-
-.mb-book h3 {
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-.mb-book-price {
-  color: #8ef0c4;
-  font-size: 23px;
-  font-weight: bold;
-}
-
-.mb-book-button {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  padding: 12px;
-  margin-top: 12px;
-  background: #46b58c;
-  color: #071a16;
-  border-radius: 10px;
-  font-weight: bold;
-}
-
-#mb-book-search {
-  width: 100%;
-  max-width: 500px;
-}
-</style>
-
-<script>
-(async function initBooks() {
-  const section = document.createElement("section");
-  section.id = "mb-books";
-  section.hidden = true;
-
-  const heading = document.createElement("h2");
-  heading.textContent = "📚 Książki i literatura";
-
-  const subtitle = document.createElement("p");
-  subtitle.textContent =
-    "Oferty TaniaKsiazka.pl dostępne przez WebePartners";
-
-  const searchInput = document.createElement("input");
-  searchInput.id = "mb-book-search";
-  searchInput.placeholder = "Szukaj w załadowanych książkach...";
-  searchInput.setAttribute(
-    "aria-label",
-    "Wyszukaj książkę"
-  );
-
-  const counter = document.createElement("p");
-
-  const bookGrid = document.createElement("div");
-  bookGrid.className = "mb-books-grid";
-
-  section.append(
-    heading,
-    subtitle,
-    searchInput,
-    counter,
-    bookGrid
-  );
-
-  const productsSection =
-    document.querySelector("#products");
-
-  if (!productsSection) return;
-
-  productsSection.before(section);
-
+async function loadBooks() {
   try {
-    const response = await fetch("/api/books");
+    const response = await fetch(API.books);
 
     if (!response.ok) {
-      throw new Error("Błąd pobierania książek");
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const data = await response.json();
@@ -943,113 +1199,164 @@ fetch('/api/products')
       data.status !== "ok" ||
       !Array.isArray(data.products)
     ) {
+      throw new Error("Nieprawidłowy katalog książek");
+    }
+
+    bookProducts = data.products;
+    booksLoaded = true;
+
+    renderAll();
+
+  } catch (error) {
+    $("#books-status").textContent =
+      "Nie udało się pobrać książek: " + error.message;
+
+    $("#books-status").classList.add("error");
+    updateGlobalStatus();
+  }
+}
+
+// ============================================
+// AUTOMATYCZNE OBNIŻKI
+// ============================================
+
+async function loadDrops() {
+  try {
+    const response = await fetch(API.drops, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    if (
+      data.status !== "ok" ||
+      !Array.isArray(data.promotions) ||
+      !data.promotions.length
+    ) {
       return;
     }
 
-    const books = data.products;
+    const section = $("#promocje");
+    const grid = $("#drops-grid");
 
-    if (!books.length) return;
+    const productMap = new Map(
+      furnitureProducts.map(product => [
+        String(product.id),
+        product
+      ])
+    );
 
-    const formatPrice = value =>
-      new Intl.NumberFormat("pl-PL", {
-        style: "currency",
-        currency: "PLN"
-      }).format(value);
+    grid.replaceChildren();
 
-    function isAffiliateLink(value) {
-      try {
-        const url = new URL(value);
+    for (const promotion of data.promotions.slice(0, 12)) {
+      const product = productMap.get(String(promotion.id));
 
-        return url.protocol === "https:" &&
-          (
-            url.hostname === "webep1.com" ||
-            url.hostname.endsWith(".webep1.com")
-          );
-      } catch {
-        return false;
+      const card = create("article", "drop-card");
+
+      if (product?.image) {
+        const imageUrl = validImage(product.image);
+
+        if (imageUrl) {
+          card.append(createImage(product));
+        }
       }
-    }
 
-    function renderBooks() {
-      const query = searchInput.value
-        .trim()
-        .toLocaleLowerCase("pl");
-
-      const visible = books.filter(book =>
-        (
-          String(book.name || "") + " " +
-          String(book.category || "")
-        ).toLocaleLowerCase("pl").includes(query)
+      card.append(
+        create(
+          "div",
+          "drop-badge",
+          "🔥 -" + promotion.discountPercent + "%"
+        )
       );
 
-      counter.textContent =
-        `Książki: ${books.length} · Wyświetlono: ${visible.length}`;
+      card.append(
+        create(
+          "h3",
+          "",
+          promotion.name || "Produkt"
+        )
+      );
 
-      bookGrid.replaceChildren();
+      card.append(
+        create(
+          "p",
+          "old-price",
+          money(promotion.oldPrice)
+        )
+      );
 
-      for (const book of visible) {
-        const card = document.createElement("article");
-        card.className = "mb-book";
+      card.append(
+        create(
+          "p",
+          "new-price",
+          money(promotion.newPrice)
+        )
+      );
 
-        if (book.image) {
-          const image = document.createElement("img");
-          image.src = book.image;
-          image.alt = book.name || "Okładka książki";
-          image.loading = "lazy";
-          image.referrerPolicy = "no-referrer";
-          card.append(image);
-        }
+      card.append(
+        create(
+          "p",
+          "saving",
+          "Różnica: " + money(promotion.saving)
+        )
+      );
 
-        const body = document.createElement("div");
-        body.className = "mb-book-body";
+      const id = String(promotion.id ?? "");
 
-        const name = document.createElement("h3");
-        name.textContent = book.name || "Książka";
-        body.append(name);
+      const detailUrl = id
+        ? "/produkt/" + encodeURIComponent(id)
+        : null;
 
-        if (book.category) {
-          const category = document.createElement("small");
-          category.textContent = book.category;
-          body.append(category);
-        }
+      if (detailUrl) {
+        const link = create(
+          "a",
+          "btn",
+          "Zobacz ofertę →"
+        );
 
-        const price = Number(book.price);
-
-        if (Number.isFinite(price) && price > 0) {
-          const priceElement = document.createElement("p");
-          priceElement.className = "mb-book-price";
-          priceElement.textContent = formatPrice(price);
-          body.append(priceElement);
-        }
-
-        if (isAffiliateLink(book.url)) {
-          const button = document.createElement("a");
-
-          button.href = book.url;
-          button.target = "_blank";
-          button.rel = "noopener noreferrer sponsored";
-          button.className = "mb-book-button";
-          button.textContent = "Sprawdź w sklepie ↗";
-
-          body.append(button);
-        }
-
-        card.append(body);
-        bookGrid.append(card);
+        link.href = detailUrl;
+        card.append(link);
       }
+
+      grid.append(card);
     }
 
-    searchInput.addEventListener("input", renderBooks);
-
-    renderBooks();
-    section.hidden = false;
+    section.hidden = grid.childElementCount === 0;
 
   } catch (error) {
     console.warn(
-      "MoneyBot: nie udało się załadować książek."
+      "MoneyBot: nie udało się pobrać promocji.",
+      error
     );
   }
-})();
+}
+
+// ============================================
+// START APLIKACJI
+// ============================================
+
+async function init() {
+  await Promise.allSettled([
+    loadFurniture(),
+    loadBooks()
+  ]);
+
+  await loadDrops();
+
+  console.info(
+    "Arturitto MoneyBot AI",
+    APP_VERSION,
+    {
+      furniture: furnitureProducts.length,
+      books: bookProducts.length
+    }
+  );
+}
+
+init();
 </script>
-<!-- KONIEC SEKCJI KSIĄŻEK --></body>
+
+</body>
 </html>
