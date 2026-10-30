@@ -219,7 +219,9 @@ export async function onRequestPost({ request, env }) {
     } else if (
       data === "notify" ||
       data.startsWith("sub:") ||
-      command === "/powiadomienia"
+      command === "/powiadomienia" ||
+command === "/wlacz" ||
+command === "/wylacz"command === "/powiadomienia"
     ) {
       await notifications(token, chat, env, data.slice(4));
 
