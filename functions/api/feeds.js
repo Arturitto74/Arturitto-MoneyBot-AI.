@@ -1,57 +1,80 @@
 export async function onRequestGet({ env }) {
-  const login = env.WEBEPARTNERS_API_LOGIN;
-  const key = env.WEBEPARTNERS_API_KEY;
+  const login = String(env.WEBEPARTNERS_API_LOGIN || "").trim();
+  const key = String(env.WEBEPARTNERS_API_KEY || "").trim();
 
   if (!login || !key) {
     return Response.json({
-      error: "Brak konfiguracji API WebePartners"
-    }, { status: 503 });
+      status: "configuration_error",
+      loginConfigured: Boolean(login),
+      keyConfigured: Boolean(key),
+      message: "Brakuje loginu lub klucza API w Cloudflare"
+    });
   }
 
   try {
-    const authorization = btoa(`${login}:${key}`);
+    const auth = btoa(
+      Array.from(
+        new TextEncoder().encode(login + ":" + key),
+        byte => String.fromCharCode(byte)
+      ).join("")
+    );
 
-    const response = await fetch(
-      "https://api2.webepartners.pl/Wydawca/GetFeeds",
-      {
+    const endpoints = {
+      feeds: "https://api2.webepartners.pl/Wydawca/GetFeeds",
+      programs: "https://api2.webepartners.pl/Wydawca/GetPrograms"
+    };
+
+    const results = {};
+
+    for (const [name, url] of Object.entries(endpoints)) {
+      const response = await fetch(url, {
         headers: {
-          Authorization: `Basic ${authorization}`,
+          Authorization: "Basic " + auth,
           Accept: "application/json"
         },
         cache: "no-store"
+      });
+
+      results[name] = {
+        httpStatus: response.status,
+        success: response.ok
+      };
+
+      if (response.ok) {
+        const data = await response.json();
+
+        results[name].count =
+          Array.isArray(data) ? data.length : null;
+
+        if (name === "feeds" && Array.isArray(data)) {
+          results[name].catalogs = data.map(item => ({
+            programId: item.programId,
+            programName: item.programName,
+            feedName: item.feedName
+          }));
+        }
       }
-    );
-
-    if (!response.ok) {
-      return Response.json({
-        error: "Błąd WebePartners API",
-        status: response.status
-      }, { status: 502 });
     }
 
-    const feeds = await response.json();
-
-    if (!Array.isArray(feeds)) {
-      throw new Error("Nieoczekiwany format odpowiedzi");
-    }
-
-    // Nie ujawniamy publicznie adresów katalogów XML.
     return Response.json({
-      status: "ok",
-      count: feeds.length,
-      programs: feeds.map(feed => ({
-        programId: feed.programId,
-        programName: feed.programName,
-        feedName: feed.feedName,
-        updateDate: feed.updateDate
-      }))
+      status:
+        results.feeds.success && results.programs.success
+          ? "ok"
+          : "api_error",
+      credentialsPresent: true,
+      results
     }, {
-      headers: { "Cache-Control": "no-store" }
+      headers: {
+        "Cache-Control": "no-store"
+      }
     });
 
-  } catch {
+  } catch (error) {
+    console.error("WebePartners diagnostic failed:", error);
+
     return Response.json({
-      error: "Nie udało się odczytać katalogów"
+      status: "connection_error",
+      message: "Nie udało się połączyć z API"
     }, { status: 502 });
   }
 }
