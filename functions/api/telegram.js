@@ -223,7 +223,12 @@ export async function onRequestPost({ request, env }) {
 command === "/wlacz" ||
 command === "/wylacz"command === "/powiadomienia"
     ) {
-      await notifications(token, chat, env, data.slice(4));
+      const action =
+  command === "/wlacz" ? "on" :
+  command === "/wylacz" ? "off" :
+  data.startsWith("sub:") ? data.slice(4) : "";
+
+await notifications(token, chat, env, action);
 
     } else if (
       command === "/produkt" ||
