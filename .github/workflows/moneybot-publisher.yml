@@ -27,12 +27,18 @@ jobs:
           import os
           import hashlib
           import urllib.request
+          import urllib.error
           import urllib.parse
           import xml.etree.ElementTree as ET
           from datetime import datetime, timezone
 
-          token = os.environ.get("TELEGRAM_TOKEN")
-          channel = os.environ.get("TELEGRAM_CHANNEL")
+          token = (
+              os.environ.get("TELEGRAM_TOKEN") or ""
+          ).strip()
+
+          channel = (
+              os.environ.get("TELEGRAM_CHANNEL") or ""
+          ).strip()
 
           if not token or not channel:
               raise SystemExit(
@@ -45,7 +51,7 @@ jobs:
 
           books = os.environ.get("BOOKS_RSS_URL")
           if books:
-              feeds.append(books)
+              feeds.append(books.strip())
 
           products = []
 
@@ -53,8 +59,11 @@ jobs:
               try:
                   request = urllib.request.Request(
                       feed,
-                      headers={"User-Agent": "MoneyBotPublisher/1.0"}
+                      headers={
+                          "User-Agent": "MoneyBotPublisher/1.0"
+                      }
                   )
+
                   with urllib.request.urlopen(
                       request, timeout=60
                   ) as response:
@@ -63,8 +72,13 @@ jobs:
                   root = ET.fromstring(xml)
 
                   for item in root.findall(".//item"):
-                      title = item.findtext("title", "").strip()
-                      link = item.findtext("link", "").strip()
+                      title = item.findtext(
+                          "title", ""
+                      ).strip()
+
+                      link = item.findtext(
+                          "link", ""
+                      ).strip()
 
                       if title and link.startswith(
                           "https://arturitto-moneybot-ai.pages.dev/"
@@ -72,18 +86,26 @@ jobs:
                           products.append((title, link))
 
               except Exception as error:
-                  print("Blad zrodla RSS:", str(error))
+                  print(
+                      "Blad zrodla RSS:",
+                      str(error)
+                  )
 
           products = list(dict.fromkeys(products))
 
           if not products:
-              raise SystemExit("Brak ofert do publikacji")
+              raise SystemExit(
+                  "Brak ofert do publikacji"
+              )
 
           now = datetime.now(timezone.utc)
           slot = 0 if now.hour < 13 else 1
 
           seed = f"{now.date()}-{slot}"
-          digest = hashlib.sha256(seed.encode()).hexdigest()
+          digest = hashlib.sha256(
+              seed.encode()
+          ).hexdigest()
+
           index = int(digest, 16) % len(products)
 
           title, link = products[index]
@@ -96,7 +118,8 @@ jobs:
           )
 
           url = (
-              f"https://api.telegram.org/bot{token}/sendMessage"
+              f"https://api.telegram.org/"
+              f"bot{token}/sendMessage"
           )
 
           payload = urllib.parse.urlencode({
@@ -106,13 +129,30 @@ jobs:
           }).encode()
 
           request = urllib.request.Request(
-              url, data=payload, method="POST"
+              url,
+              data=payload,
+              method="POST"
           )
 
-          with urllib.request.urlopen(
-              request, timeout=30
-          ) as response:
-              print(response.read().decode()[:500])
+          try:
+              with urllib.request.urlopen(
+                  request, timeout=60
+              ) as response:
+                  result = response.read().decode()
+                  print(result[:500])
+
+          except urllib.error.HTTPError as error:
+              details = error.read().decode(
+                  "utf-8",
+                  errors="replace"
+              )
+
+              print(
+                  "Telegram API:",
+                  details
+              )
+
+              raise
 
           print("Oferta opublikowana.")
           PY
