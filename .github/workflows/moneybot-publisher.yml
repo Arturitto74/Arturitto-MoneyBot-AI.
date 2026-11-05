@@ -110,7 +110,7 @@ jobs:
           )
 
           with urllib.request.urlopen(
-              request, timeout=30
+              request, timeout=60
           ) as response:
               print(response.read().decode()[:500])
 
